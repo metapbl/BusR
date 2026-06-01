@@ -18,7 +18,7 @@ macOS 환경에서는 보안 설정(Gatekeeper)으로 인해 앱 실행 시 권�
 xattr -d com.apple.quarantine /app_file 경로
 ```
 **(2) 맥os operation not permitted 에러 해결**
-시스템설정 ➔ 개인정보 보호 및 보안 ➔ 전체 디스크 접근 권한 ➔ +버튼 클릭 ➔ Seoul_Bus_Drive_Recorder_v1_15.app 적용
+시스템설정 ➔ 개인정보 보호 및 보안 ➔ 전체 디스크 접근 권한 ➔ +버튼 클릭 ➔ Seoul_Bus_Drive_Recorder_v1_18.app 적용
 <br><br>
 
 ## 📖 사용 방법
