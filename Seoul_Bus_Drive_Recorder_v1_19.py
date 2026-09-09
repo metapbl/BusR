@@ -3305,7 +3305,8 @@ class SeoulBusRecorder(QMainWindow):
 #   맨 앞(인덱스 0)에 추가. 공공누리 제1유형 출처표시 + 수집 프로그램/
 #   소스코드 링크 + 실시간 데이터 유의사항을 담는다. _core_excel_save()에서
 #   ExcelWriter의 with 블록 안, 날짜별 시트 작성 직후에 호출된다.
-#   데이터셋 이름 아래 행에는 공공데이터포털 상세 페이지 URL을 하이퍼링크로 둔다.
+#   셀 값 안에 URL이 포함돼 있으면(선행 텍스트 유무 무관) 정규식으로 추출해
+#   해당 셀 전체에 하이퍼링크를 건다.
 # ──────────────────────────────────────────────────────────
     def _write_source_sheet(self, wb):
         ws = wb.create_sheet("출처 및 수집방법", 0)
@@ -3331,14 +3332,17 @@ class SeoulBusRecorder(QMainWindow):
             ("", "실시간 API 응답을 기록한 것으로 통신 상태에 따라 누락·오차가 있을 수 있습니다."),
             ("", "본 자료를 외부에 제공·공표할 때에는 위 출처를 함께 표기하시기 바랍니다."),
         ]
+        url_pattern = re.compile(r"https?://\S+")
         for r, (a, b) in enumerate(rows, start=1):
             ws.cell(row=r, column=1, value=a)
             cb = ws.cell(row=r, column=2, value=b)
             if a.startswith("■"):
                 ws.cell(row=r, column=1).font = XlFont(bold=True)
-            if isinstance(b, str) and b.startswith("http"):
-                cb.hyperlink = b
-                cb.font = XlFont(color="0563C1", underline="single")
+            if isinstance(b, str):
+                m = url_pattern.search(b)
+                if m:
+                    cb.hyperlink = m.group(0)
+                    cb.font = XlFont(color="0563C1", underline="single")
         ws.column_dimensions["A"].width = 18
         ws.column_dimensions["B"].width = 78
 
