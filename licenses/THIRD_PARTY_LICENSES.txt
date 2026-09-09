@@ -2213,7 +2213,7 @@ SOFTWARE.
 pyinstaller-hooks-contrib
 2026.7
 Apache Software License; GNU General Public License v2 (GPLv2)
-UNKNOWN
+Legorooj <legorooj@protonmail.com>
 https://github.com/pyinstaller/pyinstaller-hooks-contrib
 ============================================
 PyInstaller Community Hooks: License details
