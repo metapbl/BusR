@@ -1,7 +1,9 @@
-# Seoul_Bus_Drive_Recorder v1.19 - 직접 의존성 (버전 고정)
+# Seoul_Bus_Drive_Recorder v1.19 - 직접 의존성
 # 설치: pip install -r requirements.txt
 PySide6==6.11.1
 requests==2.34.2
 pandas==3.0.5
 openpyxl==3.1.5
-cryptography==50.0.0
+# cryptography는 Fernet만 사용. macOS는 50.0.0 휠이 없어 소스 빌드로 실패하므로 48.0.1 고정.
+cryptography==50.0.0; sys_platform != "darwin"
+cryptography==48.0.1; sys_platform == "darwin"
