@@ -3447,68 +3447,91 @@ class SeoulBusRecorder(QMainWindow):
     def _show_program_info(self):
         dlg = QDialog(self)
         dlg.setWindowTitle("프로그램 정보")
-        dlg.resize(680, 640)
+        dlg.resize(680, 840)
 
-        html = (f"<h3 style='margin-bottom:2px'>서울시내버스 노선 운행기록 수집 프로그램 "
-                f"v{APP_VERSION}</h3>"
-                f"<p>Copyright &copy; 2026 박국환 "
-                f"(<a href='mailto:ggoyong2@naver.com'>ggoyong2@naver.com</a>)<br>"
-                f"저장소 : <a href='https://github.com/metapbl/BusR'>https://github.com/metapbl/BusR</a><br>"
-                f"이 프로그램은 <b>MIT 라이선스</b>로 배포됩니다.</p>"
-                f"<p><b>■ 오픈소스 고지</b><br>"
-                f"이 프로그램은 Qt 및 PySide6를 <b>GNU LGPL v3</b>에 따라 사용합니다.<br>"
-                f"&nbsp;- Qt 소스 : <a href='https://download.qt.io'>https://download.qt.io</a><br>"
-                f"&nbsp;- PySide6 소스 : "
-                f"<a href='https://code.qt.io/cgit/pyside/pyside-setup.git'>code.qt.io/cgit/pyside/pyside-setup.git</a><br>"
-                f"그 밖에 requests, openpyxl 등을 사용하며, 전체 목록과 라이선스 전문은 "
-                f"아래 [라이선스 전문 폴더 열기] 버튼으로 확인할 수 있습니다.<br>"
-                f"아이콘 : 박국환 직접 제작</p>"
-                f"<p><b>■ 공공데이터 출처표시</b><br>"
-                f"본 프로그램은 공공누리 제1유형(출처표시)에 따라 서울특별시(미래첨단교통과)가 "
-                f"개방한 「서울특별시_버스위치정보조회 서비스」, 「서울특별시_버스도착정보조회 "
-                f"서비스」, 「서울특별시_정류소정보조회 서비스」, 「서울특별시_노선정보조회 "
-                f"서비스」의 공공저작물을 이용하였으며, 해당 데이터는 공공데이터포털 "
-                f"(<a href='https://www.data.go.kr'>https://www.data.go.kr</a>)에서 "
-                f"무료로 이용하실 수 있습니다.<br>"
-                f"위 데이터에는 제3자 권리가 포함되어 있어 저작권 표시가 필요합니다. "
-                f"(<a href='https://ccl.cckorea.org/about/'>제3자 권리 포함 : 저작권 표시</a>)</p>")
+        # ① 제목 · 저작권 헤더
+        header = (f"<h3 style='margin-bottom:2px'>서울시내버스 노선 운행기록 수집 프로그램 "
+                  f"v{APP_VERSION}</h3>"
+                  f"<p>Copyright &copy; 2026 박국환 "
+                  f"(<a href='mailto:ggoyong2@naver.com'>ggoyong2@naver.com</a>)<br>"
+                  f"저장소 : <a href='https://github.com/metapbl/BusR'>https://github.com/metapbl/BusR</a><br>"
+                  f"이 프로그램은 <b>MIT 라이선스</b>로 배포됩니다.</p>")
 
+        # ② 이용 안내
         notice = ("<p><b>■ 이용 안내</b></p>"
-                   "<ul style='margin-top:0'>"
-                   "<li>수집 정보는 서울특별시가 공개한 버스 운행 정보이며, 중앙행정심판위원회 "
-                   "2022-21122(2023-05-16) 재결은 특정 버스의 위치정보를 특정 개인의 위치정보로 "
-                   "볼 수 없다고 판단하였습니다.</li>"
-                   "<li>이 프로그램은 법정 휴게시간 등 근로조건 점검을 목적으로 하며, 개별 운전자에 "
-                   "대한 감시 목적의 사용을 금지합니다.</li>"
-                   "<li>실시간 API 응답을 기록한 것으로 통신 상태에 따라 누락·오차가 있을 수 있습니다.</li>"
-                   "<li>수집 결과를 외부에 제공·공표할 때에는 위 출처표시를 함께 표기하시기 바랍니다.</li>"
-                   "<li>입력하신 인증키는 설정 파일에 평문으로 저장되지 않고 암호화되어 보관됩니다. "
-                   "다만 복호화에 필요한 정보가 프로그램에 포함되어 있으므로, 소스 코드를 분석할 수 "
-                   "있는 사람에 대한 방어 수단은 아닙니다. 설정 파일을 타인과 공유하지 마십시오.</li>"
-                   "<li>인증키 관리 및 API 이용약관 준수 책임은 이용자에게 있습니다.</li>"
-                   "</ul>")
+                  "<ul style='margin-top:0'>"
+                  "<li>수집 정보는 서울특별시가 공개한 버스 운행 정보이며, 중앙행정심판위원회 "
+                  "2022-21122(2023-05-16) 재결은 특정 버스의 위치정보를 특정 개인의 위치정보로 "
+                  "볼 수 없다고 판단하였습니다.</li>"
+                  "<li>이 프로그램은 법정 휴게시간 등 근로조건 점검을 목적으로 하며, 개별 운전자에 "
+                  "대한 감시 목적의 사용을 금지합니다.</li>"
+                  "<li>실시간 API 응답을 기록한 것으로 통신 상태에 따라 누락·오차가 있을 수 있습니다.</li>"
+                  "<li>수집 결과를 외부에 제공·공표할 때에는 아래 출처표시를 함께 표기하시기 바랍니다.</li>"
+                  "<li>입력하신 인증키는 설정 파일에 평문으로 저장되지 않고 암호화되어 보관됩니다. "
+                  "다만 복호화에 필요한 정보가 프로그램에 포함되어 있으므로, 소스 코드를 분석할 수 "
+                  "있는 사람에 대한 방어 수단은 아닙니다. 설정 파일을 타인과 공유하지 마십시오.</li>"
+                  "<li>인증키 관리 및 API 이용약관 준수 책임은 이용자에게 있습니다.</li>"
+                  "</ul>")
+
+        # ③ 오픈소스 고지
+        oss = ("<p><b>■ 오픈소스 고지</b></p>"
+               "<ul style='margin-top:0'>"
+               "<li>이 프로그램은 Qt 및 PySide6를 <b>GNU LGPL v3</b>에 따라 사용합니다.</li>"
+               "<li>Qt 소스 : <a href='https://download.qt.io'>https://download.qt.io</a></li>"
+               "<li>PySide6 소스 : "
+               "<a href='https://code.qt.io/cgit/pyside/pyside-setup.git'>https://code.qt.io/cgit/pyside/pyside-setup.git</a></li>"
+               "<li>그 밖에 requests, openpyxl 등을 사용하며, 전체 목록과 라이선스 전문은 "
+               "아래 [라이선스 전문 폴더 열기] 버튼으로 확인할 수 있습니다.</li>"
+               "<li>아이콘 : 박국환 직접 제작</li>"
+               "</ul>")
+
+        # ④ 공공데이터 출처표시
+        opendata = ("<p><b>■ 공공데이터 출처표시</b></p>"
+                    "<ul style='margin-top:0'>"
+                    "<li>본 프로그램은 공공누리 제1유형(출처표시)에 따라 서울특별시(미래첨단교통과)가 "
+                    "개방한 다음 공공저작물을 이용하였습니다."
+                    "<br>&nbsp;&nbsp;· <a href='https://www.data.go.kr/data/15000332/openapi.do'>"
+                    "서울특별시_버스위치정보조회 서비스</a>"
+                    "<br>&nbsp;&nbsp;· <a href='https://www.data.go.kr/data/15000314/openapi.do'>"
+                    "서울특별시_버스도착정보조회 서비스</a>"
+                    "<br>&nbsp;&nbsp;· <a href='https://www.data.go.kr/data/15000303/openapi.do'>"
+                    "서울특별시_정류소정보조회 서비스</a>"
+                    "<br>&nbsp;&nbsp;· <a href='https://www.data.go.kr/data/15000193/openapi.do'>"
+                    "서울특별시_노선정보조회 서비스</a></li>"
+                    "<li>해당 데이터는 공공데이터포털 "
+                    "(<a href='https://www.data.go.kr'>https://www.data.go.kr</a>)에서 "
+                    "무료로 이용하실 수 있습니다.</li>"
+                    "<li>위 데이터에는 제3자 권리가 포함되어 있어 저작권 표시가 필요합니다. "
+                    "(<a href='https://ccl.cckorea.org/about/'>제3자 권리 포함 : 저작권 표시</a>)</li>"
+                    "</ul>")
 
         inner = QWidget()
         v = QVBoxLayout(inner)
 
-        top = QLabel(html)
-        top.setWordWrap(True)
-        top.setOpenExternalLinks(True)
-        top.setTextFormat(Qt.RichText)
-        v.addWidget(top)
+        def _add_label(text):
+            lb = QLabel(text)
+            lb.setWordWrap(True)
+            lb.setOpenExternalLinks(True)
+            lb.setTextFormat(Qt.RichText)
+            v.addWidget(lb)
+            return lb
+
+        _add_label(header)
+        v.addSpacing(18)
+        _add_label(notice)
+        v.addSpacing(18)
+        _add_label(oss)
+        v.addSpacing(18)
+        _add_label(opendata)
 
         # 공공누리 제1유형 마크 — 내장 base64, 원본 크기 그대로(변형·scaled() 금지)
         mark = QLabel()
         pm = load_pixmap_from_b64(GG_IMG_B64)
         if not pm.isNull():
             mark.setPixmap(pm)
-        mark.setAlignment(Qt.AlignLeft)
+        mark.setAlignment(Qt.AlignHCenter)
         v.addWidget(mark)
 
-        bottom = QLabel(notice)
-        bottom.setWordWrap(True)
-        bottom.setTextFormat(Qt.RichText)
-        v.addWidget(bottom)
         v.addStretch(1)
 
         sa = QScrollArea()
