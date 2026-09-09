@@ -1,0 +1,23 @@
+# 빌드 산출물
+build/
+dist/
+*.spec.bak
+
+# 파이썬
+__pycache__/
+*.pyc
+*.pyo
+
+# 가상환경
+.venv/
+venv/
+env/
+
+# 에디터 · OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# 사용자 설정 (인증키 포함)
+Seoul_Bus_Config.ini
