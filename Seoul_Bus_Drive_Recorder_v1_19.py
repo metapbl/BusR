@@ -3305,6 +3305,7 @@ class SeoulBusRecorder(QMainWindow):
 #   맨 앞(인덱스 0)에 추가. 공공누리 제1유형 출처표시 + 수집 프로그램/
 #   소스코드 링크 + 실시간 데이터 유의사항을 담는다. _core_excel_save()에서
 #   ExcelWriter의 with 블록 안, 날짜별 시트 작성 직후에 호출된다.
+#   데이터셋 이름 아래 행에는 공공데이터포털 상세 페이지 URL을 하이퍼링크로 둔다.
 # ──────────────────────────────────────────────────────────
     def _write_source_sheet(self, wb):
         ws = wb.create_sheet("출처 및 수집방법", 0)
@@ -3314,9 +3315,13 @@ class SeoulBusRecorder(QMainWindow):
             ("제공처", "공공데이터포털 https://www.data.go.kr"),
             ("이용허락범위", "공공누리 제1유형(출처표시) / 제3자 권리 포함 : 저작권 표시"),
             ("이용 데이터셋", "서울특별시_버스위치정보조회 서비스 (15000332)"),
+            ("", "https://www.data.go.kr/data/15000332/openapi.do"),
             ("", "서울특별시_버스도착정보조회 서비스 (15000314)"),
+            ("", "https://www.data.go.kr/data/15000314/openapi.do"),
             ("", "서울특별시_정류소정보조회 서비스 (15000303)"),
+            ("", "https://www.data.go.kr/data/15000303/openapi.do"),
             ("", "서울특별시_노선정보조회 서비스 (15000193)"),
+            ("", "https://www.data.go.kr/data/15000193/openapi.do"),
             ("", ""),
             ("■ 수집 방법", ""),
             ("수집 프로그램", f"Seoul_Bus_Drive_Recorder v{APP_VERSION}"),
@@ -3328,9 +3333,12 @@ class SeoulBusRecorder(QMainWindow):
         ]
         for r, (a, b) in enumerate(rows, start=1):
             ws.cell(row=r, column=1, value=a)
-            ws.cell(row=r, column=2, value=b)
+            cb = ws.cell(row=r, column=2, value=b)
             if a.startswith("■"):
                 ws.cell(row=r, column=1).font = XlFont(bold=True)
+            if isinstance(b, str) and b.startswith("http"):
+                cb.hyperlink = b
+                cb.font = XlFont(color="0563C1", underline="single")
         ws.column_dimensions["A"].width = 18
         ws.column_dimensions["B"].width = 78
 
