@@ -3633,15 +3633,127 @@ class SeoulBusRecorder(QMainWindow):
             pass
 
 # ══════════════════════════════════════════════════════════
+# 【진단】 크래시 디버그 스위치 (기본값 False = 평소 사용 시 꺼둠)
+#   이 스위치는 오직 "강제종료 시 crash_dump.txt 로그 파일을
+#   남길 것인가"만 결정함. On/Off와 무관하게 프로그램의 실제
+#   작동(메뉴·지도·저장·GC 스레드 안전화 조치 등)은 항상 동일함.
+#   → 평소 사용 시: False (로그 안 남김, 파일 I/O 부담도 없음)
+#   → 강제종료가 재발할 때 원인 파악용: True로 켜서 재현
+# ══════════════════════════════════════════════════════════
+DEBUG_CRASH_FIX = False
+
+# ══════════════════════════════════════════════════════════
 # 【7】 프로그램 진입점
 #   파이썬 파일을 직접 실행했을 때만 이 블록이 실행됨.
 #   다른 파일에서 import할 때는 실행되지 않음.
+#   ① [항상 적용] GC 스레드 안전화: 자동 GC를 끄고 메인(GUI)
+#      스레드에서만 주기적으로 gc.collect()를 실행하도록 강제.
+#      → 백그라운드 스레드(_main_loop 등)에서 GC가 돌며 Qt 객체가
+#        엉뚱한 스레드에서 소멸되어 발생하는
+#        "Windows fatal exception: access violation" 크래시를 방지.
+#      (DJ_Bus_Drive_Recorder v1.54에서 검증된 것과 동일한 조치.)
+#   ② [DEBUG_CRASH_FIX=True일 때만] crash_dump.txt 로깅 설치
+#      (faulthandler + 미처리 예외 후킹 + Qt 메시지 핸들러 +
+#       GC 발생 시점/스레드 기록)
+#   ③ QApplication 생성 ("Fusion" 스타일 적용)
+#   ④ detect_os_dark_mode()로 OS 다크모드 감지 → 팔레트 적용
+#   ⑤ SeoulBusRecorder 창 생성 및 표시
+#   ⑥ app.exec()로 이벤트 루프 시작 (사용자가 창을 닫을 때까지 대기)
 # ══════════════════════════════════════════════════════════
 if __name__ == "__main__":
+
+    # ── ① [항상 적용] GC를 메인(GUI) 스레드에서만 실행 ──────────
+    #   자동(백그라운드 임의 스레드) GC를 끄고, 메인 스레드의
+    #   QTimer가 30초마다 명시적으로 gc.collect()를 호출하도록
+    #   강제함. 인자 없는 gc.collect()는 항상 전체 세대(gen2급)
+    #   수거를 수행함.
+    import gc
+    gc.disable()
+
+    def _periodic_gc():
+        n = gc.collect()
+        if DEBUG_CRASH_FIX and n and '_crash_log' in globals():
+            _crash_log.write(
+                f"[{datetime.now():%H:%M:%S}] [진단] GC(전체세대) 실행 "
+                f"(스레드: 메인) → {n}개 객체 회수\n"
+            )
+            _crash_log.flush()
+
+    _gc_timer = QTimer()
+    _gc_timer.timeout.connect(_periodic_gc)
+    _gc_timer.start(30000)  # 30초마다, 메인(GUI) 스레드에서 실행
+    # ─────────────────────────────────────────────────────────
+
+    # ── ② [DEBUG_CRASH_FIX=True일 때만] crash_dump.txt 로깅 설치 ──
+    if DEBUG_CRASH_FIX:
+        import faulthandler
+        import traceback
+
+        if getattr(sys, "frozen", False):
+            _base_dir = os.path.dirname(sys.executable)
+        else:
+            _base_dir = os.path.dirname(os.path.abspath(__file__))
+        _crash_path = os.path.join(_base_dir, "crash_dump.txt")
+
+        # 반드시 전역 참조로 열어 둔다 (GC되면 faulthandler가 무효화됨)
+        _crash_log = open(_crash_path, "a", encoding="utf-8", buffering=1)
+        _crash_log.write(
+            f"\n\n===== 실행 시작 {datetime.now():%Y-%m-%d %H:%M:%S} "
+            f"(v{APP_VERSION}, {sys.platform}) =====\n"
+        )
+
+        # C 레벨 치명적 크래시(세그폴트 등) 스택 덤프
+        faulthandler.enable(file=_crash_log, all_threads=True)
+
+        # 파이썬 미처리 예외 기록
+        def _log_exc(prefix, etype, value, tb):
+            _crash_log.write(f"\n[{datetime.now():%H:%M:%S}] {prefix}\n")
+            traceback.print_exception(etype, value, tb, file=_crash_log)
+            _crash_log.flush()
+
+        def _hook(etype, value, tb):
+            _log_exc("메인 스레드 미처리 예외", etype, value, tb)
+            sys.__excepthook__(etype, value, tb)
+
+        def _thread_hook(args):
+            name = getattr(args.thread, "name", "?")
+            _log_exc(f"스레드({name}) 미처리 예외",
+                     args.exc_type, args.exc_value, args.exc_traceback)
+
+        sys.excepthook = _hook
+        threading.excepthook = _thread_hook
+
+        # Qt 내부 경고/치명적 오류 기록
+        from PySide6.QtCore import qInstallMessageHandler, QtMsgType
+
+        _QT_LV = {
+            QtMsgType.QtDebugMsg: "DEBUG",
+            QtMsgType.QtInfoMsg: "INFO",
+            QtMsgType.QtWarningMsg: "WARNING",
+            QtMsgType.QtCriticalMsg: "CRITICAL",
+            QtMsgType.QtFatalMsg: "FATAL",
+        }
+
+        def _qt_msg(mode, ctx, msg):
+            lv = _QT_LV.get(mode, str(mode))
+            loc = f" ({ctx.file}:{ctx.line})" if getattr(ctx, "file", None) else ""
+            _crash_log.write(f"[{datetime.now():%H:%M:%S}] Qt-{lv}: {msg}{loc}\n")
+            _crash_log.flush()
+
+        qInstallMessageHandler(_qt_msg)
+    # ─────────────────────────────────────────────────────────
+
+    # ── ③~⑥ 원래의 시작 절차 ──
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     mode = "dark" if detect_os_dark_mode() else "light"
     app.setPalette(_make_palette(mode))
     window = SeoulBusRecorder()
     window.show()
-    sys.exit(app.exec())
+
+    _rc = app.exec()
+    if DEBUG_CRASH_FIX:
+        _crash_log.write(f"===== 정상 종료 (code={_rc}) "
+                         f"{datetime.now():%Y-%m-%d %H:%M:%S} =====\n")
+        _crash_log.close()
+    sys.exit(_rc)
