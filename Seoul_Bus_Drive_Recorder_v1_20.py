@@ -1,5 +1,5 @@
 # ============================================================
-# Seoul_Bus_Drive_Recorder v1.19
+# Seoul_Bus_Drive_Recorder v1.20
 #
 # 【프로그램 설명】
 #   서울시 공공데이터 API를 이용하여 특정 버스 노선의
@@ -110,7 +110,7 @@
 # 【7】 프로그램 진입점 (if __name__ == "__main__")
 # ══════════════════════════════════════════════════════════
 # ============================================================
-# Seoul_Bus_Drive_Recorder_v1.19
+# Seoul_Bus_Drive_Recorder_v1.20
 # ============================================================
 
 # ══════════════════════════════════════════════════════════
@@ -262,7 +262,7 @@ except ImportError:
 #   창 제목·정보창·엑셀 출처 시트 등에서 공통으로 참조하는
 #   단일 버전 문자열. 버전 변경 시 이 값만 수정하면 된다.
 # ══════════════════════════════════════════════════════════
-APP_VERSION = "1.19"
+APP_VERSION = "1.20"
 
 # ══════════════════════════════════════════════════════════
 # 【2-2】 글꼴(폰트) 이름 상수
@@ -1451,7 +1451,7 @@ class SeoulBusRecorder(QMainWindow):
 #      recorded_data         : [(시각,구분,정류소,노선,차번), ...] 기록 리스트
 #      _saved_record_count   : 마지막 저장 시점 기록 수 (중복 저장 방지)
 #      last_arrival_logs     : {(방향,rid,vn): timestamp} 최근 기록 시각
-#                              → 같은 이벤트를 40분(2400초) 내 중복 기록 방지
+#                              → 같은 이벤트를 30분(1800초) 내 중복 기록 방지
 #      departed_vehicles     : {(rid,vn): timestamp} 출발 감지된 버스 목록
 #                              → 6시간(21600초) 후 자동 삭제
 #      pos_suspend_until     : {rid: datetime} 운행 종료 후 API 호출 중지 시각
@@ -2430,12 +2430,15 @@ class SeoulBusRecorder(QMainWindow):
             "rnm": route_name, "rid": route_id, "st_cnt": n,
             "first_st_id": stops[0]["station"] if stops else "",
             "second_st_id": stops[1]["station"] if n >= 2 else "",
+            "third_st_id": stops[2]["station"] if n >= 3 else "",
             "last_st_id": stops[-1]["station"] if stops else "",
             "first_nm": stops[0]["name"] if stops else "?",
             "second_nm": stops[1]["name"] if n >= 2 else "?",
+            "third_nm": stops[2]["name"] if n >= 3 else "?",
             "last_nm": stops[-1]["name"] if stops else "?",
             "first_ars": stops[0]["arsId"] if stops else "?",
             "second_ars": stops[1]["arsId"] if n >= 2 else "?",
+            "third_ars": stops[2]["arsId"] if n >= 3 else "?",
             "last_ars": stops[-1]["arsId"] if stops else "?",
             "corp_nm": corp_nm, "first_bus_tm": first_bus_tm,
             "last_bus_tm": last_bus_tm, "rtype": route_type,
@@ -3050,8 +3053,8 @@ class SeoulBusRecorder(QMainWindow):
 #        - 지도 버스 제거 (sig_clear_map)
 #        - 첫차 시각까지 API 호출 중지 (pos_suspend_until 설정)
 #      버스 있으면:
-#        - lastStnId가 첫·두 번째 정류소이면 출발 기록 (_record)
-#          (40분=2400초 내 중복 방지, departed_vehicles에 등록)
+#        - lastStnId가 첫·두·세 번째 정류소이면 출발 기록 (_record)
+#          (30분=1800초 내 중복 방지, departed_vehicles에 등록)
 #        - URL_SLST로 구간 속도 수집 → 지도에 _sect_speeds 갱신
 #        - sig_update_map으로 지도 버스 위치 갱신
 #      [도착 판정]
@@ -3140,17 +3143,21 @@ class SeoulBusRecorder(QMainWindow):
                         self.departed_vehicles[(rid, vn)] = _now
                     ifs = route['first_st_id'] and ls == route['first_st_id']
                     iss = route['second_st_id'] and ls == route['second_st_id']
-                    if not (ifs or iss):
+                    iths = route['third_st_id'] and ls == route['third_st_id']
+                    if not (ifs or iss or iths):
                         continue
                     k0 = (0, rid, vn)
-                    if k0 not in self.last_arrival_logs or _now - self.last_arrival_logs[k0] >= 2400:
+                    if k0 not in self.last_arrival_logs or _now - self.last_arrival_logs[k0] >= 1800:
                         ft2 = format_datetm(bus.findtext("dataTm"))
                         if ifs:
                             dn, da = route['first_nm'], route['first_ars']
                             st = f"[{dn}({da}) 출발]"
-                        else:
+                        elif iss:
                             dn, da = route['second_nm'], route['second_ars']
                             st = f"[{dn}({da}) 출발 - 2번째 정류소 감지]"
+                        else:
+                            dn, da = route['third_nm'], route['third_ars']
+                            st = f"[{dn}({da}) 출발 - 3번째 정류소 감지]"
                         self._record(0, ft2, rnm, vn, dn, da, st)
                         self.last_arrival_logs[k0] = _now
                         self.departed_vehicles[(rid, vn)] = _now
@@ -3204,7 +3211,7 @@ class SeoulBusRecorder(QMainWindow):
                 if (rid, vn) not in self.departed_vehicles:
                     continue
                 k1 = (1, rid, vn)
-                if k1 not in self.last_arrival_logs or _now - self.last_arrival_logs[k1] >= 2400:
+                if k1 not in self.last_arrival_logs or _now - self.last_arrival_logs[k1] >= 1800:
                     ft2 = format_datetm(bus.findtext("dataTm"))
                     st = f"[{route['last_nm']}({route['last_ars']}) 도착]"
                     self._record(1, ft2, rnm, vn, route['last_nm'], route['last_ars'], st)
