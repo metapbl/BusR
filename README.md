@@ -7,8 +7,8 @@
 
 ## 📥 다운로드 및 설치
 
-* 💻 **Windows :** [ZIP 파일 다운로드 (v1.20)](https://github.com/ggoyong2-ctrl/Bus_Recorder/releases/download/Downloads/Seoul_Bus_Drive_Recorder_v1_20.zip)
-* 🍎 **macOS :** [ZIP 파일 다운로드 (v1.20)](https://github.com/ggoyong2-ctrl/Bus_Recorder/releases/download/Downloads/Seoul_Bus_Drive_Recorder_v1_20_macOS.zip)
+* 💻 **Windows :** [ZIP 파일 다운로드 (v1.21)](https://github.com/ggoyong2-ctrl/Bus_Recorder/releases/download/Downloads/Seoul_Bus_Drive_Recorder_v1_21.zip)
+* 🍎 **macOS :** [ZIP 파일 다운로드 (v1.21)](https://github.com/ggoyong2-ctrl/Bus_Recorder/releases/download/Downloads/Seoul_Bus_Drive_Recorder_v1_21_macOS.zip)
 #### 🛠️ macOS 사용자 필수 설정 안내
 macOS 환경에서는 보안 설정(Gatekeeper)으로 인해 앱 실행 시 권한 허용이 필요합니다. 아래 두 가지 단계를 꼭 진행해 주세요.
 
@@ -18,7 +18,7 @@ macOS 환경에서는 보안 설정(Gatekeeper)으로 인해 앱 실행 시 권�
 xattr -d com.apple.quarantine /app_file 경로
 ```
 **(2) 맥os operation not permitted 에러 해결**
-시스템설정 ➔ 개인정보 보호 및 보안 ➔ 전체 디스크 접근 권한 ➔ +버튼 클릭 ➔ Seoul_Bus_Drive_Recorder_v1_20.app 적용
+시스템설정 ➔ 개인정보 보호 및 보안 ➔ 전체 디스크 접근 권한 ➔ +버튼 클릭 ➔ Seoul_Bus_Drive_Recorder_v1_21.app 적용
 <br><br>
 
 ## 📖 사용 방법
