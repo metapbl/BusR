@@ -1,5 +1,5 @@
 # ============================================================
-# Seoul_Bus_Drive_Recorder v1.20
+# Seoul_Bus_Drive_Recorder v1.21
 #
 # 【프로그램 설명】
 #   서울시 공공데이터 API를 이용하여 특정 버스 노선의
@@ -110,7 +110,7 @@
 # 【7】 프로그램 진입점 (if __name__ == "__main__")
 # ══════════════════════════════════════════════════════════
 # ============================================================
-# Seoul_Bus_Drive_Recorder_v1.20
+# Seoul_Bus_Drive_Recorder_v1.21
 # ============================================================
 
 # ══════════════════════════════════════════════════════════
@@ -262,7 +262,7 @@ except ImportError:
 #   창 제목·정보창·엑셀 출처 시트 등에서 공통으로 참조하는
 #   단일 버전 문자열. 버전 변경 시 이 값만 수정하면 된다.
 # ══════════════════════════════════════════════════════════
-APP_VERSION = "1.20"
+APP_VERSION = "1.21"
 
 # ══════════════════════════════════════════════════════════
 # 【2-2】 글꼴(폰트) 이름 상수
@@ -2431,14 +2431,17 @@ class SeoulBusRecorder(QMainWindow):
             "first_st_id": stops[0]["station"] if stops else "",
             "second_st_id": stops[1]["station"] if n >= 2 else "",
             "third_st_id": stops[2]["station"] if n >= 3 else "",
+            "fourth_st_id": stops[3]["station"] if n >= 4 else "",
             "last_st_id": stops[-1]["station"] if stops else "",
             "first_nm": stops[0]["name"] if stops else "?",
             "second_nm": stops[1]["name"] if n >= 2 else "?",
             "third_nm": stops[2]["name"] if n >= 3 else "?",
+            "fourth_nm": stops[3]["name"] if n >= 4 else "?",
             "last_nm": stops[-1]["name"] if stops else "?",
             "first_ars": stops[0]["arsId"] if stops else "?",
             "second_ars": stops[1]["arsId"] if n >= 2 else "?",
             "third_ars": stops[2]["arsId"] if n >= 3 else "?",
+            "fourth_ars": stops[3]["arsId"] if n >= 4 else "?",
             "last_ars": stops[-1]["arsId"] if stops else "?",
             "corp_nm": corp_nm, "first_bus_tm": first_bus_tm,
             "last_bus_tm": last_bus_tm, "rtype": route_type,
@@ -2916,10 +2919,27 @@ class SeoulBusRecorder(QMainWindow):
             self._start_monitoring()
 
 # ──────────────────────────────────────────────────────────
+# 【6-30-1】 _route_file_tag()
+#   현재 감시 중인 노선의 "유형_번호" 문자열을 반환한다.
+#   (예: "간선_104", "지선_1164", "광역_9401")
+#   파일명이 프로그램 창(=노선)별로 겹치지 않도록 자동 저장 파일 및
+#   완료 파일 이름에 삽입하기 위한 용도. Seoul 프로그램은 창 하나당
+#   노선 하나만 감시하므로 self.routes[0] 참조가 항상 안전하다.
+#   노선 정보가 없을 경우("routes"가 비어있는 극히 예외적 상황) "노선"으로 대체.
+# ──────────────────────────────────────────────────────────
+    def _route_file_tag(self):
+        if not self.routes:
+            return "노선"
+        r = self.routes[0]
+        rtype_label = ROUTE_TYPE_LABEL.get(r.get("rtype", ""), "기타")
+        rnm = r.get("rnm", "") or "노선"
+        return f"{rtype_label}_{rnm}"
+
+# ──────────────────────────────────────────────────────────
 # 【6-31】 _start_monitoring()
 #   모니터링 시작:
 #   ① 이미 기록 중이면 중복 실행 방지 가드
-#   ② 노선 등록 확인 → 자동 저장 파일 생성 (운행기록_YYYYMMDD_HHMMSS.xlsx)
+#   ② 노선 등록 확인 → 자동 저장 파일 생성 (운행기록_노선유형_노선번호_YYYYMMDD_HHMMSS.xlsx)
 #   ③ is_monitoring=True, 메뉴 "기록 중지"로 변경, [노선 검색] 비활성화
 #   ④ resume_tick() 호출, _main_loop 데몬 스레드 시작
 # ──────────────────────────────────────────────────────────
@@ -2929,7 +2949,7 @@ class SeoulBusRecorder(QMainWindow):
         if not self.routes:
             QMessageBox.warning(self, "알림", "불러온 노선이 없습니다. 먼저 노선을 검색하세요.")
             return
-        fn = f"운행기록_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+        fn = f"운행기록_{self._route_file_tag()}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
         self.auto_save_path = os.path.join(self.current_dir, fn)
         try:
             pd.DataFrame(columns=["데이터시각", "운행시작/종료", "정류소이름(번호)", "노선", "차량번호"]).to_excel(self.auto_save_path, index=False)
@@ -3144,7 +3164,8 @@ class SeoulBusRecorder(QMainWindow):
                     ifs = route['first_st_id'] and ls == route['first_st_id']
                     iss = route['second_st_id'] and ls == route['second_st_id']
                     iths = route['third_st_id'] and ls == route['third_st_id']
-                    if not (ifs or iss or iths):
+                    ifr = route['fourth_st_id'] and ls == route['fourth_st_id']
+                    if not (ifs or iss or iths or ifr):
                         continue
                     k0 = (0, rid, vn)
                     if k0 not in self.last_arrival_logs or _now - self.last_arrival_logs[k0] >= 1800:
@@ -3155,9 +3176,12 @@ class SeoulBusRecorder(QMainWindow):
                         elif iss:
                             dn, da = route['second_nm'], route['second_ars']
                             st = f"[{dn}({da}) 출발 - 2번째 정류소 감지]"
-                        else:
+                        elif iths:
                             dn, da = route['third_nm'], route['third_ars']
                             st = f"[{dn}({da}) 출발 - 3번째 정류소 감지]"
+                        else:
+                            dn, da = route['fourth_nm'], route['fourth_ars']
+                            st = f"[{dn}({da}) 출발 - 4번째 정류소 감지]"
                         self._record(0, ft2, rnm, vn, dn, da, st)
                         self.last_arrival_logs[k0] = _now
                         self.departed_vehicles[(rid, vn)] = _now
@@ -3262,7 +3286,9 @@ class SeoulBusRecorder(QMainWindow):
 #   ③ 완결 날짜(cd) = 오늘·Unknown 제외한 모든 날짜
 #   ④ ExcelWriter로 날짜별 시트에 저장 + _axs()로 스타일 적용
 #   ⑤ sc=True이면 완결 날짜의 별도 완료 파일 생성
-#      → "운행기록_YYYYMMDD_완료.xlsx" (_completed_dates_saved로 중복 방지)
+#      → "운행기록_노선유형_노선번호_YYYYMMDD_완료.xlsx" (_completed_dates_saved로 중복 방지)
+#      노선유형_노선번호를 파일명에 포함해 여러 프로그램 창(=여러 노선)을
+#      동시에 띄웠을 때 완료 파일이 서로 덮어써지는 것을 방지한다.
 #   ⑥ _saved_record_count 갱신
 # ──────────────────────────────────────────────────────────
     def _core_excel_save(self, tp, sc=False):
@@ -3288,18 +3314,19 @@ class SeoulBusRecorder(QMainWindow):
                     self._axs(w.sheets[bd], sd)
                 self._write_source_sheet(w.book)
             if sc:
+                rtag = self._route_file_tag()
                 for bd in sorted(cd - self._completed_dates_saved):
                     dd = df[df['BizDate'] == bd].drop(columns=['BizDate'])
                     if dd.empty:
                         continue
                     sd2 = bd.replace("-", "")
-                    cp = os.path.join(self.current_dir, f"운행기록_{sd2}_완료.xlsx")
+                    cp = os.path.join(self.current_dir, f"운행기록_{rtag}_{sd2}_완료.xlsx")
                     with pd.ExcelWriter(cp, engine='openpyxl') as cw:
                         dd.to_excel(cw, sheet_name=bd, index=False)
                         self._axs(cw.sheets[bd], dd)
                         self._write_source_sheet(cw.book)
                     self._completed_dates_saved.add(bd)
-                    self.log(f"📁 완결 파일 저장: 운행기록_{sd2}_완료.xlsx")
+                    self.log(f"📁 완결 파일 저장: 운행기록_{rtag}_{sd2}_완료.xlsx")
             self._saved_record_count = len(self.recorded_data)
         except PermissionError:
             self.log("⚠ 엑셀 파일이 열려 있어 저장을 건너뜁니다.")
