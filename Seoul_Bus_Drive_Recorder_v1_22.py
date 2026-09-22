@@ -1,5 +1,5 @@
 # ============================================================
-# Seoul_Bus_Drive_Recorder v1.21
+# Seoul_Bus_Drive_Recorder
 #
 # 【프로그램 설명】
 #   서울시 공공데이터 API를 이용하여 특정 버스 노선의
@@ -12,7 +12,7 @@
 #      ├─ 【1-2】 PySide6 GUI 라이브러리 (창·버튼·표·그래픽 등)
 #      └─ 【1-3】 외부 선택 라이브러리 (requests, pandas, openpyxl, cryptography)
 # 【2】 전역 상수
-#      ├─ 【2-1】 프로그램 버전 상수 (APP_VERSION)
+#      ├─ 【2-1】 프로그램 이름·버전 상수 (APP_NAME / APP_VERSION / APP_TITLE)
 #      ├─ 【2-2】 글꼴 이름 (FONT_FAMILY, FONT_MONO)
 #      ├─ 【2-3】 아이콘/이미지 데이터 (ICON_B64, GG_IMG_B64 - Base64)
 #      ├─ 【2-4】 API URL 상수 (URL_POS1 ~ URL_SRCH)
@@ -62,55 +62,57 @@
 #      ├─ 【6-1】  __init__()              초기화·시그널·변수 선언
 #      ├─ 【6-2】  _make_info_html()       메뉴바 우측 제작자 HTML 생성
 #      ├─ 【6-3】  _setup_ui()             메뉴·레이아웃·위젯 전체 구성
-#      ├─ 【6-4】  _toggle_log_panel()     로그창 접기/펼치기
-#      ├─ 【6-5】  _open_save_file()          기록 파일 바로 열기
-#      ├─ 【6-6】  _open_save_folder()        기록 파일 폴더 열기
+#      ├─ 【6-4】  _open_save_file()          기록 파일 바로 열기
+#      ├─ 【6-5】  _open_save_folder()        기록 파일 폴더 열기
+#      ├─ 【6-6】  _toggle_log_panel()     로그창 접기/펼치기
 #      ├─ 【6-7】  _apply_theme()          라이트/다크 테마 전체 적용
 #      ├─ 【6-8】  _slot_log()             로그 메시지 화면 출력 [슬롯]
 #      ├─ 【6-9】  _slot_record()          운행 기록 표 추가 [슬롯]
 #      ├─ 【6-10】 _slot_update_map()      지도 버스 위치 갱신 [슬롯]
 #      ├─ 【6-11】 _slot_clear_map()       지도 버스 제거 [슬롯]
 #      ├─ 【6-12】 log()                   로그 시그널 발행
-#      ├─ 【6-13】 _make_fernet()          암호화 객체 생성
-#      ├─ 【6-14】 _enc_key()              API 키 암호화
-#      ├─ 【6-15】 _dec_key()              API 키 복호화
-#      ├─ 【6-16】 _load_config()          설정 파일에서 API 키 읽기
-#      ├─ 【6-17】 _save_config()          설정 파일에 API 키 저장
-#      ├─ 【6-18】 _show_key_input()       인증키 입력/검증 대화상자
-#      ├─ 【6-19】 _show_route_search()    노선 검색/즐겨찾기 대화상자
-#      ├─ 【6-20】 _load_route_from_search() 노선 상세 정보 API 로드
-#      ├─ 【6-21】 _slot_route_loaded()    노선 로드 완료 처리 [슬롯]
-#      ├─ 【6-22】 fetch_api()       ★     서울시 버스 API 공통 호출
-#      ├─ 【6-23】 _fetch_first_time()     첫차 시각 조회
-#      ├─ 【6-24】 _on_schedule_toggle()   예약 버튼 4가지 분기 처리
-#      ├─ 【6-25】 _ask_scheduled_start()  기록 시작 예약 시각 입력 창
-#      ├─ 【6-26】 _register_schedule_timer()   시작 예약 폴링 타이머
-#      ├─ 【6-27】 _ask_scheduled_stop()   기록 중지 예약 시각 입력 창
-#      ├─ 【6-28】 _register_stop_schedule_timer() 중지 예약 폴링 타이머
-#      ├─ 【6-29】 _stop_monitoring_silent()  예약 자동 중지 (확인창 없음)
-#      ├─ 【6-30】 _on_toggle()            기록 시작/중지 토글 (예약·이전기록 팝업 포함)
-#      ├─ 【6-31】 _start_monitoring()     모니터링 시작 (중복 실행 가드 포함)
-#      ├─ 【6-32】 _clear_recorded_data()  기록창·recorded_data 초기화
-#      ├─ 【6-33】 _stop_monitoring()      모니터링 중지 (중지예약 팝업 분기 포함)
-#      ├─ 【6-34】 _main_loop()            백그라운드 갱신 루프 스레드
-#      ├─ 【6-35】 _refresh_data()         한 번의 데이터 갱신 실행
-#      ├─ 【6-36】 _process_routes()  ★    버스 위치 분석·운행 판정 핵심
-#      ├─ 【6-37】 _record()               운행 이벤트 기록
-#      ├─ 【6-38】 _perform_auto_save()    자동 엑셀 저장 (락 보호)
-#      ├─ 【6-39】 _core_excel_save()      엑셀 파일 저장 (날짜별 시트)
-#      ├─ 【6-40】 _write_source_sheet()   엑셀 "출처 및 수집방법" 시트 생성
-#      ├─ 【6-41】 _axs()                  엑셀 시트 스타일 적용
-#      ├─ 【6-42】 _ask_interval()         갱신 주기 입력 대화상자
-#      ├─ 【6-43】 _show_api_status()      API 호출 현황 대화상자
-#      ├─ 【6-44】 _show_program_info()    프로그램 정보 대화상자
-#      ├─ 【6-45】 closeEvent()            창 닫기 이벤트 처리
-#      ├─ 【6-46】 _load_favorites()       즐겨찾기 불러오기
-#      ├─ 【6-47】 _save_favorites()       즐겨찾기 저장
-#      └─ 【6-48】 _cleanup_search_signal() 검색 시그널 연결 해제
+#      ├─ 【6-13】 _slot_sect_speeds()      구간 속도 시그널 슬롯 [슬롯]
+#      ├─ 【6-14】 _make_fernet()          암호화 객체 생성
+#      ├─ 【6-15】 _enc_key()              API 키 암호화
+#      ├─ 【6-16】 _dec_key()              API 키 복호화
+#      ├─ 【6-17】 _load_config()          설정 파일에서 API 키 읽기
+#      ├─ 【6-18】 _save_config()          설정 파일에 API 키 저장
+#      ├─ 【6-19】 _show_key_input()       인증키 입력/검증 대화상자
+#      ├─ 【6-20】 _show_route_search()    노선 검색/즐겨찾기 대화상자
+#      ├─ 【6-21】 _load_route_from_search() 노선 상세 정보 API 로드
+#      ├─ 【6-22】 _slot_route_loaded()    노선 로드 완료 처리 [슬롯]
+#      ├─ 【6-23】 fetch_api()       ★     서울시 버스 API 공통 호출
+#      ├─ 【6-24】 _fetch_first_time()     첫차 시각 조회
+#      ├─ 【6-25】 _on_schedule_toggle()   예약 버튼 4가지 분기 처리
+#      ├─ 【6-26】 _ask_scheduled_start()  기록 시작 예약 시각 입력 창
+#      ├─ 【6-27】 _register_schedule_timer()   시작 예약 폴링 타이머
+#      ├─ 【6-28】 _ask_scheduled_stop()   기록 중지 예약 시각 입력 창
+#      ├─ 【6-29】 _register_stop_schedule_timer() 중지 예약 폴링 타이머
+#      ├─ 【6-30】 _stop_monitoring_silent()  예약 자동 중지 (확인창 없음)
+#      ├─ 【6-31】 _on_toggle()            기록 시작/중지 토글 (예약·이전기록 팝업 포함)
+#      ├─ 【6-32】 _route_file_tag()        노선 파일 태그 생성
+#      ├─ 【6-33】 _start_monitoring()     모니터링 시작 (중복 실행 가드 포함)
+#      ├─ 【6-34】 _clear_recorded_data()  기록창·recorded_data 초기화
+#      ├─ 【6-35】 _stop_monitoring()      모니터링 중지 (중지예약 팝업 분기 포함)
+#      ├─ 【6-36】 _main_loop()            백그라운드 갱신 루프 스레드
+#      ├─ 【6-37】 _refresh_data()         한 번의 데이터 갱신 실행
+#      ├─ 【6-38】 _process_routes()  ★    버스 위치 분석·운행 판정 핵심
+#      ├─ 【6-39】 _record()               운행 이벤트 기록
+#      ├─ 【6-40】 _perform_auto_save()    자동 엑셀 저장 (락 보호)
+#      ├─ 【6-41】 _core_excel_save()      엑셀 파일 저장 (날짜별 시트)
+#      ├─ 【6-42】 _write_source_sheet()   엑셀 "출처 및 수집방법" 시트 생성
+#      ├─ 【6-43】 _axs()                  엑셀 시트 스타일 적용
+#      ├─ 【6-44】 _ask_interval()         갱신 주기 입력 대화상자
+#      ├─ 【6-45】 _show_api_status()      API 호출 현황 대화상자
+#      ├─ 【6-46】 _show_program_info()    프로그램 정보 대화상자
+#      ├─ 【6-47】 closeEvent()            창 닫기 이벤트 처리
+#      ├─ 【6-48】 _load_favorites()       즐겨찾기 불러오기
+#      ├─ 【6-49】 _save_favorites()       즐겨찾기 저장
+#      └─ 【6-50】 _cleanup_search_signal() 검색 시그널 연결 해제
 # 【7】 프로그램 진입점 (if __name__ == "__main__")
 # ══════════════════════════════════════════════════════════
 # ============================================================
-# Seoul_Bus_Drive_Recorder_v1.21
+# Seoul_Bus_Drive_Recorder
 # ============================================================
 
 # ══════════════════════════════════════════════════════════
@@ -258,11 +260,13 @@ except ImportError:
     _hl = None
 
 # ══════════════════════════════════════════════════════════
-# 【2-1】 프로그램 버전 상수
+# 【2-1】 프로그램 이름·버전 상수
 #   창 제목·정보창·엑셀 출처 시트 등에서 공통으로 참조하는
-#   단일 버전 문자열. 버전 변경 시 이 값만 수정하면 된다.
+#   단일 선언. 버전 변경 시 이 값(APP_NAME/APP_VERSION)만 수정하면 된다.
 # ══════════════════════════════════════════════════════════
-APP_VERSION = "1.21"
+APP_NAME = "서울시내버스 노선 운행기록 수집 프로그램"
+APP_VERSION = "1.22"
+APP_TITLE = f"{APP_NAME} v{APP_VERSION}"
 
 # ══════════════════════════════════════════════════════════
 # 【2-2】 글꼴(폰트) 이름 상수
@@ -536,10 +540,10 @@ def make_bus_pixmap():
 # 【3-10~13】 현재 테마 색상 getter 함수들
 #   테마가 바뀌어도 항상 현재 팔레트의 올바른 색상을 반환.
 # ══════════════════════════════════════════════════════════
-# get_app_bg_color()   → QPalette.Window      (창 배경색)
-# get_text_color()     → QPalette.WindowText  (기본 글자색)
-# get_base_color()     → QPalette.Base        (표·입력창 배경색)
-# get_header_bg_color()→ QPalette.Button      (표 헤더 배경색)
+# 【3-10】get_app_bg_color()   → QPalette.Window      (창 배경색)
+# 【3-11】get_text_color()     → QPalette.WindowText  (기본 글자색)
+# 【3-12】get_base_color()     → QPalette.Base        (표·입력창 배경색)
+# 【3-13】get_header_bg_color()→ QPalette.Button      (표 헤더 배경색)
 def get_app_bg_color():
     return QApplication.palette().color(QPalette.Window)
 
@@ -1434,6 +1438,7 @@ class SeoulBusRecorder(QMainWindow):
     sig_search_done = Signal(list)
     sig_route_loaded = Signal(dict)
     sig_key_verified = Signal(str, str, str, str)
+    sig_sect_speeds = Signal(str, object)   # 구간 속도: {seq번호:int → km/h} (int 키 dict → QVariantMap 회피)
 
     _SECRET = "l'existence précède l'essence"
 
@@ -1464,7 +1469,7 @@ class SeoulBusRecorder(QMainWindow):
 # ──────────────────────────────────────────────────────────
     def __init__(self):
         super().__init__()
-        self.setWindowTitle(f"서울시내버스 노선 운행기록 수집 프로그램 v{APP_VERSION}")
+        self.setWindowTitle(APP_TITLE)
         self.setMinimumSize(800, 500)
         self.resize(1350, 1000)
         try:
@@ -1521,6 +1526,7 @@ class SeoulBusRecorder(QMainWindow):
         self.sig_update_map.connect(self._slot_update_map)
         self.sig_clear_map.connect(self._slot_clear_map)
         self.sig_route_loaded.connect(self._slot_route_loaded)
+        self.sig_sect_speeds.connect(self._slot_sect_speeds)
 
         self._load_config()
         self._setup_ui()
@@ -1692,19 +1698,12 @@ class SeoulBusRecorder(QMainWindow):
         outer_splitter.setCollapsible(outer_splitter.indexOf(log_container), False)
 
 # ──────────────────────────────────────────────────────────
-# 【6-4】 _toggle_log_panel()
-#   로그 창 접기/펼치기 토글.
-#   접기  : log_text를 숨기고, 로그 컨테이너를 24px(헤더만)으로 줄임.
-#   펼치기: log_text를 보여주고, 이전 저장 높이로 복원.
-#   outer_splitter.setSizes([위 크기, 아래 크기])로 영역 재배분.
-# ──────────────────────────────────────────────────────────
-    def _open_save_file(self):
-# ──────────────────────────────────────────────────────────
-# 【6-5】 _open_save_file()
+# 【6-4】 _open_save_file()
 #   로그 헤더 [파일열기] 버튼 클릭 시 호출.
 #   현재 기록 중인 엑셀 파일을 기본 연결 프로그램(Excel 등)으로 바로 열기.
 #   Windows: os.startfile / macOS: open 명령 / Linux: xdg-open
 # ──────────────────────────────────────────────────────────
+    def _open_save_file(self):
         if not self.auto_save_path or not os.path.exists(self.auto_save_path):
             QMessageBox.warning(self, "알림", "파일을 찾을 수 없습니다.")
             return
@@ -1718,13 +1717,13 @@ class SeoulBusRecorder(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "오류", f"파일 열기 실패: {e}")
 
-    def _open_save_folder(self):
 # ──────────────────────────────────────────────────────────
-# 【6-6】 _open_save_folder()
+# 【6-5】 _open_save_folder()
 #   로그 헤더 [폴더열기] 버튼 클릭 시 호출.
 #   현재 기록 중인 엑셀 파일이 있는 폴더를 탐색기로 열고 파일을 선택 상태로 표시.
 #   Windows: explorer /select / macOS: open -R / Linux: xdg-open (폴더)
 # ──────────────────────────────────────────────────────────
+    def _open_save_folder(self):
         if not self.auto_save_path:
             QMessageBox.warning(self, "알림", "파일 경로를 확인할 수 없습니다.")
             return
@@ -1738,6 +1737,13 @@ class SeoulBusRecorder(QMainWindow):
         except Exception as e:
             QMessageBox.warning(self, "오류", f"폴더 열기 실패: {e}")
 
+# ──────────────────────────────────────────────────────────
+# 【6-6】 _toggle_log_panel()
+#   로그 창 접기/펼치기 토글.
+#   접기  : log_text를 숨기고, 로그 컨테이너를 24px(헤더만)으로 줄임.
+#   펼치기: log_text를 보여주고, 이전 저장 높이로 복원.
+#   outer_splitter.setSizes([위 크기, 아래 크기])로 영역 재배분.
+# ──────────────────────────────────────────────────────────
     def _toggle_log_panel(self):
         if self._log_expanded:
             sizes = self._outer_splitter.sizes()
@@ -1816,15 +1822,26 @@ class SeoulBusRecorder(QMainWindow):
         self.sig_log.emit(msg)
 
 # ──────────────────────────────────────────────────────────
-# 【6-13】 _make_fernet() → Fernet or None
+# 【6-13】 _slot_sect_speeds(rnm, speeds)
+#   _process_routes()가 백그라운드 스레드에서 계산한 구간 속도를
+#   시그널(str, object)로 받아 메인(GUI) 스레드에서 지도 패널에 반영.
+#   int 키 dict의 QVariantMap 변환 실패를 피하기 위해 object 타입 사용.
+# ──────────────────────────────────────────────────────────
+    def _slot_sect_speeds(self, rnm, speeds):
+        p = self.route_map_panels.get(rnm)
+        if p is not None:
+            p.set_sect_speeds(speeds)
+
+# ──────────────────────────────────────────────────────────
+# 【6-14】 _make_fernet() → Fernet or None
 #   _SECRET 문장을 pbkdf2_hmac(SHA-256, 100000회 반복)으로
 #   32바이트 키로 변환 후 urlsafe_b64encode하여 Fernet 암호화 객체 생성.
 #   cryptography 라이브러리 없으면 None 반환.
 #
-# 【6-14】 _enc_key(raw) → str
+# 【6-15】 _enc_key(raw) → str
 #   평문 API 키를 Fernet으로 암호화. 실패 시 원본 반환.
 #
-# 【6-15】 _dec_key(enc) → str
+# 【6-16】 _dec_key(enc) → str
 #   암호화된 API 키를 복호화. 실패 시 원본 반환.
 # ──────────────────────────────────────────────────────────
     def _make_fernet(self):
@@ -1852,12 +1869,12 @@ class SeoulBusRecorder(QMainWindow):
             return enc
 
 # ──────────────────────────────────────────────────────────
-# 【6-16】 _load_config()
+# 【6-17】 _load_config()
 #   Seoul_Bus_Config.ini 파일에서 암호화된 API 키를 읽어 복호화 후 저장.
 #   INI 구조: [keys] main_key = (암호화값) / back_key = (암호화값)
 #   파일 없으면 조용히 리턴.
 #
-# 【6-17】 _save_config()
+# 【6-18】 _save_config()
 #   현재 API 키를 암호화하여 설정 파일에 저장.
 #   기존 파일의 favorites 섹션 등 다른 설정은 보존.
 # ──────────────────────────────────────────────────────────
@@ -1894,7 +1911,7 @@ class SeoulBusRecorder(QMainWindow):
             pass
 
 # ──────────────────────────────────────────────────────────
-# 【6-18】 _show_key_input()
+# 【6-19】 _show_key_input()
 #   API 인증키를 입력·검증하는 대화상자.
 #
 #   구성: 메인키(64자) 입력창 + 보조키(64자 또는 공란) 입력창
@@ -2026,7 +2043,7 @@ class SeoulBusRecorder(QMainWindow):
             pass
         
 # ──────────────────────────────────────────────────────────
-# 【6-19】 _show_route_search()
+# 【6-20】 _show_route_search()
 #   노선 검색 및 즐겨찾기 관리 대화상자.
 #
 #   구성:
@@ -2344,7 +2361,7 @@ class SeoulBusRecorder(QMainWindow):
         self._search_dlg = None
 
 # ──────────────────────────────────────────────────────────
-# 【6-20】 _load_route_from_search(route_id, route_name, route_type, dlg)
+# 【6-21】 _load_route_from_search(route_id, route_name, route_type, dlg)
 #   백그라운드 스레드에서 실행. 선택 노선의 상세 정보를 API로 수집.
 #
 #   API 호출:
@@ -2450,7 +2467,7 @@ class SeoulBusRecorder(QMainWindow):
         self.sig_route_loaded.emit(route_data)
 
 # ──────────────────────────────────────────────────────────
-# 【6-21】 _slot_route_loaded(data) [슬롯]
+# 【6-22】 _slot_route_loaded(data) [슬롯]
 #   sig_route_loaded 수신 → 새 노선을 메인 창에 등록.
 #   ① routes 리스트 교체
 #   ② 해당 노선 RouteMapPanel 없으면 생성 후 map_stack에 추가
@@ -2499,7 +2516,7 @@ class SeoulBusRecorder(QMainWindow):
                 pass
 
 # ──────────────────────────────────────────────────────────
-# 【6-22】 fetch_api(url, params) → XML root | tuple | None  ★ API 공통 호출 ★
+# 【6-23】 fetch_api(url, params) → XML root | tuple | None  ★ API 공통 호출 ★
 #   메인 키 → 보조 키 순으로 API 호출 시도.
 #
 #   반환값:
@@ -2567,7 +2584,7 @@ class SeoulBusRecorder(QMainWindow):
         return None
 
 # ──────────────────────────────────────────────────────────
-# 【6-23】 _fetch_first_time(rid) → "HH:MM" or None
+# 【6-24】 _fetch_first_time(rid) → "HH:MM" or None
 #   URL_RINF API로 특정 노선의 첫차 출발 시각 조회.
 #   운행 종료 감지 후 다음 첫차까지 API 호출을 일시 중지할 때 필요.
 # ──────────────────────────────────────────────────────────
@@ -2585,9 +2602,8 @@ class SeoulBusRecorder(QMainWindow):
             pass
         return None
 
-    def _on_schedule_toggle(self):
 # ──────────────────────────────────────────────────────────
-# 【6-24】 _on_schedule_toggle()
+# 【6-25】 _on_schedule_toggle()
 #   act_schedule 버튼 클릭 시 호출. 현재 상태에 따라 4가지로 분기:
 #
 #   ① 시작 예약 대기 중  → 시작 예약 취소
@@ -2595,6 +2611,7 @@ class SeoulBusRecorder(QMainWindow):
 #   ③ 기록 중 + 중지 미예약  → 중지 시각 입력 창 (_ask_scheduled_stop)
 #   ④ 대기 중 (기본 상태) → 시작 시각 입력 창 (_ask_scheduled_start)
 # ──────────────────────────────────────────────────────────
+    def _on_schedule_toggle(self):
         # ① 시작 예약 대기 중 → 취소
         if self._schedule_timer is not None:
             self._schedule_timer.stop()
@@ -2618,9 +2635,8 @@ class SeoulBusRecorder(QMainWindow):
         # ④ 대기 중 → 시작 시각 입력 창
         self._ask_scheduled_start()
 
-    def _ask_scheduled_start(self):
 # ──────────────────────────────────────────────────────────
-# 【6-25】 _ask_scheduled_start()
+# 【6-26】 _ask_scheduled_start()
 #   기록을 시작할 예약 시각(년·월·일·시·분)을 입력 받는 대화상자.
 #   갱신주기 입력 대화상자(_ask_interval)와 동일한 스타일.
 #
@@ -2639,6 +2655,7 @@ class SeoulBusRecorder(QMainWindow):
 #   - 메뉴 텍스트를 "예약 취소 (YYYY-MM-DD HH:MM 예약됨)"으로 변경
 #   - 로그에 예약 시각 기록
 # ──────────────────────────────────────────────────────────
+    def _ask_scheduled_start(self):
         now = datetime.now()
         dlg = QDialog(self)
         dlg.setWindowTitle("예약 기록 시작")
@@ -2710,9 +2727,8 @@ class SeoulBusRecorder(QMainWindow):
         bb.rejected.connect(dlg.reject)
         dlg.exec()
 
-    def _register_schedule_timer(self):
 # ──────────────────────────────────────────────────────────
-# 【6-26】 _register_schedule_timer()
+# 【6-27】 _register_schedule_timer()
 #   예약 시각을 1초 간격으로 감시하는 QTimer를 시작.
 #   목표 시각(self._scheduled_dt)에 도달하면:
 #   ① 타이머 중지 및 예약 변수 초기화
@@ -2720,6 +2736,7 @@ class SeoulBusRecorder(QMainWindow):
 #   ③ 아직 기록 중이 아닐 때만 _start_monitoring() 호출
 #      (사용자가 수동으로 먼저 시작한 경우 중복 실행 방지)
 # ──────────────────────────────────────────────────────────
+    def _register_schedule_timer(self):
         t = QTimer(self)
         t.setInterval(1000)
 
@@ -2745,9 +2762,8 @@ class SeoulBusRecorder(QMainWindow):
         t.start()
         self._schedule_timer = t
 
-    def _ask_scheduled_stop(self):
 # ──────────────────────────────────────────────────────────
-# 【6-27】 _ask_scheduled_stop()
+# 【6-28】 _ask_scheduled_stop()
 #   기록을 중지할 예약 시각(년·월·일·시·분)을 입력 받는 대화상자.
 #   _ask_scheduled_start() 와 동일한 UI 구조.
 #
@@ -2761,6 +2777,7 @@ class SeoulBusRecorder(QMainWindow):
 #   - 메뉴 텍스트를 "예약 중지 취소 (YYYY-MM-DD HH:MM 예약됨)"으로 변경
 #   - 로그에 예약 시각 기록
 # ──────────────────────────────────────────────────────────
+    def _ask_scheduled_stop(self):
         now = datetime.now()
         dlg = QDialog(self)
         dlg.setWindowTitle("예약 기록 중지")
@@ -2824,15 +2841,15 @@ class SeoulBusRecorder(QMainWindow):
         bb.rejected.connect(dlg.reject)
         dlg.exec()
 
-    def _register_stop_schedule_timer(self):
 # ──────────────────────────────────────────────────────────
-# 【6-28】 _register_stop_schedule_timer()
+# 【6-29】 _register_stop_schedule_timer()
 #   중지 예약 시각을 1초 간격으로 감시하는 QTimer를 시작.
 #   목표 시각(self._stop_scheduled_dt)에 도달하면:
 #   ① 타이머 중지 및 예약 변수 초기화
 #   ② 아직 기록 중일 때만 _stop_monitoring_silent() 호출
 #      (사용자가 수동으로 먼저 중지한 경우 중복 실행 방지)
 # ──────────────────────────────────────────────────────────
+    def _register_stop_schedule_timer(self):
         t = QTimer(self)
         t.setInterval(1000)
 
@@ -2855,12 +2872,12 @@ class SeoulBusRecorder(QMainWindow):
         t.start()
         self._stop_schedule_timer = t
 
-    def _stop_monitoring_silent(self):
 # ──────────────────────────────────────────────────────────
-# 【6-29】 _stop_monitoring_silent()
+# 【6-30】 _stop_monitoring_silent()
 #   예약 중지 시각 도달 시 확인 다이얼로그 없이 자동으로 기록을 중지.
 #   _stop_monitoring() 과 동일한 처리를 하되 QMessageBox 생략.
 # ──────────────────────────────────────────────────────────
+    def _stop_monitoring_silent(self):
         self.is_monitoring = False
         self.act_toggle.setText("기록 시작")
         self.act_schedule.setText("예약 기록 시작")
@@ -2875,7 +2892,7 @@ class SeoulBusRecorder(QMainWindow):
             self._perform_auto_save()
 
 # ──────────────────────────────────────────────────────────
-# 【6-30】 _on_toggle()
+# 【6-31】 _on_toggle()
 #   [기록 시작]/[기록 중지] 메뉴 클릭 시 호출. 현재 상태에 따라 분기.
 #
 #   기록 중지 상태에서 클릭 시:
@@ -2919,7 +2936,7 @@ class SeoulBusRecorder(QMainWindow):
             self._start_monitoring()
 
 # ──────────────────────────────────────────────────────────
-# 【6-30-1】 _route_file_tag()
+# 【6-32】 _route_file_tag()
 #   현재 감시 중인 노선의 "유형_번호" 문자열을 반환한다.
 #   (예: "간선_104", "지선_1164", "광역_9401")
 #   파일명이 프로그램 창(=노선)별로 겹치지 않도록 자동 저장 파일 및
@@ -2936,7 +2953,7 @@ class SeoulBusRecorder(QMainWindow):
         return f"{rtype_label}_{rnm}"
 
 # ──────────────────────────────────────────────────────────
-# 【6-31】 _start_monitoring()
+# 【6-33】 _start_monitoring()
 #   모니터링 시작:
 #   ① 이미 기록 중이면 중복 실행 방지 가드
 #   ② 노선 등록 확인 → 자동 저장 파일 생성 (운행기록_노선유형_노선번호_YYYYMMDD_HHMMSS.xlsx)
@@ -2973,7 +2990,7 @@ class SeoulBusRecorder(QMainWindow):
         self.log(f"▶ 자동 기록을 시작합니다. (주기: {self.refresh_interval}초)")
 
 # ──────────────────────────────────────────────────────────
-# 【6-32】 _clear_recorded_data()
+# 【6-34】 _clear_recorded_data()
 #   기록창(table_depart, table_arrive)과 recorded_data, _saved_record_count를 초기화.
 #   기록 시작 전 이전 기록을 지울 때 호출.
 # ──────────────────────────────────────────────────────────
@@ -2984,7 +3001,7 @@ class SeoulBusRecorder(QMainWindow):
         self.table_arrive.table.setRowCount(0)
 
 # ──────────────────────────────────────────────────────────
-# 【6-33】 _stop_monitoring()
+# 【6-35】 _stop_monitoring()
 #   모니터링 중지:
 #   ① 중지 예약 중이면 별도 팝업 →
 #      [바로 중지]: 중지 예약 취소 + 즉시 중지
@@ -3024,7 +3041,7 @@ class SeoulBusRecorder(QMainWindow):
             self._perform_auto_save()
 
 # ──────────────────────────────────────────────────────────
-# 【6-34】 _main_loop()
+# 【6-36】 _main_loop()
 #   백그라운드 데몬 스레드에서 실행되는 갱신 루프.
 #   is_monitoring이 True인 동안 반복:
 #   ① _refresh_data() 호출
@@ -3047,7 +3064,7 @@ class SeoulBusRecorder(QMainWindow):
                 time.sleep(0.1)
 
 # ──────────────────────────────────────────────────────────
-# 【6-35】 _refresh_data()
+# 【6-37】 _refresh_data()
 #   한 번의 갱신 실행. _refresh_lock으로 동시 실행 방지.
 #   (이미 갱신 중이면 blocking=False로 잠금 실패 → 즉시 리턴)
 #   ① _process_routes() → ② 미저장 기록 있으면 _perform_auto_save()
@@ -3063,7 +3080,7 @@ class SeoulBusRecorder(QMainWindow):
             self._refresh_lock.release()
 
 # ──────────────────────────────────────────────────────────
-# 【6-36】 _process_routes()  ★ 운행 기록 판정 핵심 로직 ★
+# 【6-38】 _process_routes()  ★ 운행 기록 판정 핵심 로직 ★
 #
 #   ① 날짜 변경 감지: 자정 이후이면 통계 초기화·pos_suspend_until 초기화
 #   ② 6시간 이상 지난 departed_vehicles 항목 자동 삭제
@@ -3200,7 +3217,7 @@ class SeoulBusRecorder(QMainWindow):
                             pass
 
                 if rnm in self.route_map_panels:
-                    self.route_map_panels[rnm]._sect_speeds = sect_speeds
+                    self.sig_sect_speeds.emit(rnm, sect_speeds)
 
                 bfm = []
                 for item in rp1.findall(".//itemList"):
@@ -3243,7 +3260,7 @@ class SeoulBusRecorder(QMainWindow):
                     del self.departed_vehicles[(rid, vn)]
 
 # ──────────────────────────────────────────────────────────
-# 【6-37】 _record(idx, ft, rnm, vn, sn, sa, status)
+# 【6-39】 _record(idx, ft, rnm, vn, sn, sa, status)
 #   운행 이벤트(출발/도착)를 기록하는 함수.
 #   ① recorded_data에 (시각, "운행시작"/"운행종료", "정류소(ARS)", 노선, 차번) 추가
 #   ② _perform_auto_save() 즉시 저장
@@ -3258,7 +3275,7 @@ class SeoulBusRecorder(QMainWindow):
         self.sig_record.emit(idx, (ft, rnm, vn, status))
 
 # ──────────────────────────────────────────────────────────
-# 【6-38】 _perform_auto_save()
+# 【6-40】 _perform_auto_save()
 #   _save_lock으로 동시 저장 방지 후 _core_excel_save() 호출.
 #   저장 조건 모두 충족해야 실행: recorded_data 비어있지 않음 +
 #   auto_save_path 설정됨 + can_auto_save=True
@@ -3274,7 +3291,7 @@ class SeoulBusRecorder(QMainWindow):
             self._save_lock.release()
 
 # ──────────────────────────────────────────────────────────
-# 【6-39】 _core_excel_save(tp, sc=False)
+# 【6-41】 _core_excel_save(tp, sc=False)
 #   운행 기록을 날짜별 시트로 분리하여 엑셀 저장.
 #
 #   날짜 분리 기준: 새벽 3시 이전(0~2시)은 전날 운행으로 간주
@@ -3334,7 +3351,7 @@ class SeoulBusRecorder(QMainWindow):
             self.log(f"❌ 저장 오류: {e}")
 
 # ──────────────────────────────────────────────────────────
-# 【6-40】 _write_source_sheet(wb)
+# 【6-42】 _write_source_sheet(wb)
 #   엑셀 산출물(운행기록/완료 파일 공통)에 "출처 및 수집방법" 시트를
 #   맨 앞(인덱스 0)에 추가. 공공누리 제1유형 출처표시 + 수집 프로그램/
 #   소스코드 링크 + 실시간 데이터 유의사항을 담는다. _core_excel_save()에서
@@ -3382,7 +3399,7 @@ class SeoulBusRecorder(QMainWindow):
         ws.column_dimensions["B"].width = 78
 
 # ──────────────────────────────────────────────────────────
-# 【6-41】 _axs(ws, df)
+# 【6-43】 _axs(ws, df)
 #   엑셀 워크시트에 스타일 적용.
 #   헤더 행(1행): 연파랑 배경(#DDEBF7) + 굵은 글자(11pt) + 가운데 정렬
 #   컬럼 너비: max(데이터 최대 글자 수, 헤더 글자 수) + 컬럼별 가산값
@@ -3409,7 +3426,7 @@ class SeoulBusRecorder(QMainWindow):
             
 
 # ──────────────────────────────────────────────────────────
-# 【6-42】 _ask_interval()
+# 【6-44】 _ask_interval()
 #   갱신 주기(10초 이상)를 QLineEdit으로 입력 받는 대화상자.
 # ──────────────────────────────────────────────────────────
     def _ask_interval(self):
@@ -3441,7 +3458,7 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-43】 _show_api_status()
+# 【6-45】 _show_api_status()
 #   메뉴 [API 현황] 클릭 시 호출. API별 오늘/어제 호출 횟수를 표로 표시.
 #   setMinimumSectionSize(60)으로 컬럼이 너무 좁아지지 않도록 보호.
 # ──────────────────────────────────────────────────────────
@@ -3484,7 +3501,7 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-44】 _show_program_info()
+# 【6-46】 _show_program_info()
 #   메뉴 [프로그램 정보] 클릭 시 호출.
 #   ① 저작권/오픈소스(MIT, Qt·PySide6 LGPL v3) 고지
 #   ② 공공데이터 4개 데이터셋 출처표시(공공누리 제1유형) + 공공누리 마크
@@ -3601,7 +3618,7 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-45】 closeEvent(event)
+# 【6-47】 closeEvent(event)
 #   창 닫기(X 버튼 또는 종료 메뉴) 시 Qt가 자동 호출.
 #   ① 종료 확인 메시지 → 아니오이면 event.ignore()로 취소
 #   ② is_monitoring=False 설정 (갱신 루프 중지)
@@ -3618,12 +3635,12 @@ class SeoulBusRecorder(QMainWindow):
         event.accept()
 
 # ──────────────────────────────────────────────────────────
-# 【6-46】 _load_favorites() → list
+# 【6-48】 _load_favorites() → list
 #   설정 파일(Seoul_Bus_Config.ini)의 [favorites] 섹션에서
 #   즐겨찾기 노선 목록을 JSON으로 읽어 리스트로 반환.
 #   파싱 실패 시 빈 리스트 반환.
 #
-# 【6-47】 _save_favorites(favs)
+# 【6-49】 _save_favorites(favs)
 #   즐겨찾기 리스트를 JSON으로 직렬화하여 설정 파일에 저장.
 #   동시에 현재 API 키도 갱신 (favorites 저장 시 keys도 함께 기록).
 # ──────────────────────────────────────────────────────────
@@ -3655,7 +3672,7 @@ class SeoulBusRecorder(QMainWindow):
             pass
 
 # ──────────────────────────────────────────────────────────
-# 【6-48】 _cleanup_search_signal(handler)
+# 【6-50】 _cleanup_search_signal(handler)
 #   sig_search_done 시그널에서 특정 핸들러(슬롯)의 연결을 안전하게 해제.
 #   대화상자가 닫힌 후 더 이상 필요 없는 슬롯이 계속 연결되어
 #   의도치 않게 호출되는 것을 방지.
@@ -3667,16 +3684,6 @@ class SeoulBusRecorder(QMainWindow):
             pass
 
 # ══════════════════════════════════════════════════════════
-# 【진단】 크래시 디버그 스위치 (기본값 False = 평소 사용 시 꺼둠)
-#   이 스위치는 오직 "강제종료 시 crash_dump.txt 로그 파일을
-#   남길 것인가"만 결정함. On/Off와 무관하게 프로그램의 실제
-#   작동(메뉴·지도·저장·GC 스레드 안전화 조치 등)은 항상 동일함.
-#   → 평소 사용 시: False (로그 안 남김, 파일 I/O 부담도 없음)
-#   → 강제종료가 재발할 때 원인 파악용: True로 켜서 재현
-# ══════════════════════════════════════════════════════════
-DEBUG_CRASH_FIX = False
-
-# ══════════════════════════════════════════════════════════
 # 【7】 프로그램 진입점
 #   파이썬 파일을 직접 실행했을 때만 이 블록이 실행됨.
 #   다른 파일에서 import할 때는 실행되지 않음.
@@ -3685,14 +3692,11 @@ DEBUG_CRASH_FIX = False
 #      → 백그라운드 스레드(_main_loop 등)에서 GC가 돌며 Qt 객체가
 #        엉뚱한 스레드에서 소멸되어 발생하는
 #        "Windows fatal exception: access violation" 크래시를 방지.
-#      (DJ_Bus_Drive_Recorder v1.54에서 검증된 것과 동일한 조치.)
-#   ② [DEBUG_CRASH_FIX=True일 때만] crash_dump.txt 로깅 설치
-#      (faulthandler + 미처리 예외 후킹 + Qt 메시지 핸들러 +
-#       GC 발생 시점/스레드 기록)
-#   ③ QApplication 생성 ("Fusion" 스타일 적용)
-#   ④ detect_os_dark_mode()로 OS 다크모드 감지 → 팔레트 적용
-#   ⑤ SeoulBusRecorder 창 생성 및 표시
-#   ⑥ app.exec()로 이벤트 루프 시작 (사용자가 창을 닫을 때까지 대기)
+#      (DJ_Bus_Drive_Recorder에서 검증된 것과 동일한 조치.)
+#   ② QApplication 생성 ("Fusion" 스타일 적용)
+#   ③ detect_os_dark_mode()로 OS 다크모드 감지 → 팔레트 적용
+#   ④ SeoulBusRecorder 창 생성 및 표시
+#   ⑤ app.exec()로 이벤트 루프 시작 (사용자가 창을 닫을 때까지 대기)
 # ══════════════════════════════════════════════════════════
 if __name__ == "__main__":
 
@@ -3705,79 +3709,15 @@ if __name__ == "__main__":
     gc.disable()
 
     def _periodic_gc():
-        n = gc.collect()
-        if DEBUG_CRASH_FIX and n and '_crash_log' in globals():
-            _crash_log.write(
-                f"[{datetime.now():%H:%M:%S}] [진단] GC(전체세대) 실행 "
-                f"(스레드: 메인) → {n}개 객체 회수\n"
-            )
-            _crash_log.flush()
+        gc.collect()
 
     _gc_timer = QTimer()
     _gc_timer.timeout.connect(_periodic_gc)
-    _gc_timer.start(30000)  # 30초마다, 메인(GUI) 스레드에서 실행
+    _gc_timer.start(10000)  # 10초마다, 메인(GUI) 스레드에서 실행 (1.56.x 방식)
     # ─────────────────────────────────────────────────────────
 
-    # ── ② [DEBUG_CRASH_FIX=True일 때만] crash_dump.txt 로깅 설치 ──
-    if DEBUG_CRASH_FIX:
-        import faulthandler
-        import traceback
+    # ── ②~⑤ 원래의 시작 절차 ──
 
-        if getattr(sys, "frozen", False):
-            _base_dir = os.path.dirname(sys.executable)
-        else:
-            _base_dir = os.path.dirname(os.path.abspath(__file__))
-        _crash_path = os.path.join(_base_dir, "crash_dump.txt")
-
-        # 반드시 전역 참조로 열어 둔다 (GC되면 faulthandler가 무효화됨)
-        _crash_log = open(_crash_path, "a", encoding="utf-8", buffering=1)
-        _crash_log.write(
-            f"\n\n===== 실행 시작 {datetime.now():%Y-%m-%d %H:%M:%S} "
-            f"(v{APP_VERSION}, {sys.platform}) =====\n"
-        )
-
-        # C 레벨 치명적 크래시(세그폴트 등) 스택 덤프
-        faulthandler.enable(file=_crash_log, all_threads=True)
-
-        # 파이썬 미처리 예외 기록
-        def _log_exc(prefix, etype, value, tb):
-            _crash_log.write(f"\n[{datetime.now():%H:%M:%S}] {prefix}\n")
-            traceback.print_exception(etype, value, tb, file=_crash_log)
-            _crash_log.flush()
-
-        def _hook(etype, value, tb):
-            _log_exc("메인 스레드 미처리 예외", etype, value, tb)
-            sys.__excepthook__(etype, value, tb)
-
-        def _thread_hook(args):
-            name = getattr(args.thread, "name", "?")
-            _log_exc(f"스레드({name}) 미처리 예외",
-                     args.exc_type, args.exc_value, args.exc_traceback)
-
-        sys.excepthook = _hook
-        threading.excepthook = _thread_hook
-
-        # Qt 내부 경고/치명적 오류 기록
-        from PySide6.QtCore import qInstallMessageHandler, QtMsgType
-
-        _QT_LV = {
-            QtMsgType.QtDebugMsg: "DEBUG",
-            QtMsgType.QtInfoMsg: "INFO",
-            QtMsgType.QtWarningMsg: "WARNING",
-            QtMsgType.QtCriticalMsg: "CRITICAL",
-            QtMsgType.QtFatalMsg: "FATAL",
-        }
-
-        def _qt_msg(mode, ctx, msg):
-            lv = _QT_LV.get(mode, str(mode))
-            loc = f" ({ctx.file}:{ctx.line})" if getattr(ctx, "file", None) else ""
-            _crash_log.write(f"[{datetime.now():%H:%M:%S}] Qt-{lv}: {msg}{loc}\n")
-            _crash_log.flush()
-
-        qInstallMessageHandler(_qt_msg)
-    # ─────────────────────────────────────────────────────────
-
-    # ── ③~⑥ 원래의 시작 절차 ──
     app = QApplication(sys.argv)
     app.setStyle("Fusion")
     mode = "dark" if detect_os_dark_mode() else "light"
@@ -3786,8 +3726,4 @@ if __name__ == "__main__":
     window.show()
 
     _rc = app.exec()
-    if DEBUG_CRASH_FIX:
-        _crash_log.write(f"===== 정상 종료 (code={_rc}) "
-                         f"{datetime.now():%Y-%m-%d %H:%M:%S} =====\n")
-        _crash_log.close()
     sys.exit(_rc)
