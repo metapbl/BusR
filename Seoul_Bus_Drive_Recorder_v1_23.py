@@ -99,16 +99,18 @@
 #      ├─ 【6-38】 _process_routes()  ★    버스 위치 분석·운행 판정 핵심
 #      ├─ 【6-39】 _record()               운행 이벤트 기록
 #      ├─ 【6-40】 _perform_auto_save()    자동 엑셀 저장 (락 보호)
-#      ├─ 【6-41】 _core_excel_save()      엑셀 파일 저장 (날짜별 시트)
-#      ├─ 【6-42】 _write_source_sheet()   엑셀 "출처 및 수집방법" 시트 생성
-#      ├─ 【6-43】 _axs()                  엑셀 시트 스타일 적용
-#      ├─ 【6-44】 _ask_interval()         갱신 주기 입력 대화상자
-#      ├─ 【6-45】 _show_api_status()      API 호출 현황 대화상자
-#      ├─ 【6-46】 _show_program_info()    프로그램 정보 대화상자
-#      ├─ 【6-47】 closeEvent()            창 닫기 이벤트 처리
-#      ├─ 【6-48】 _load_favorites()       즐겨찾기 불러오기
-#      ├─ 【6-49】 _save_favorites()       즐겨찾기 저장
-#      └─ 【6-50】 _cleanup_search_signal() 검색 시그널 연결 해제
+#      ├─ 【6-41】 _final_save()          최종 엑셀 저장 (락 보호, 완료 전환 없음)
+#      ├─ 【6-42】 _rotate_live_file()    실시간 파일 → 완료 파일 전환 (rename)
+#      ├─ 【6-43】 _core_excel_save()      엑셀 파일 저장 (날짜별 시트)
+#      ├─ 【6-44】 _write_source_sheet()   엑셀 "출처 및 수집방법" 시트 생성
+#      ├─ 【6-45】 _axs()                  엑셀 시트 스타일 적용
+#      ├─ 【6-46】 _ask_interval()         갱신 주기 입력 대화상자
+#      ├─ 【6-47】 _show_api_status()      API 호출 현황 대화상자
+#      ├─ 【6-48】 _show_program_info()    프로그램 정보 대화상자
+#      ├─ 【6-49】 closeEvent()            창 닫기 이벤트 처리
+#      ├─ 【6-50】 _load_favorites()       즐겨찾기 불러오기
+#      ├─ 【6-51】 _save_favorites()       즐겨찾기 저장
+#      └─ 【6-52】 _cleanup_search_signal() 검색 시그널 연결 해제
 # 【7】 프로그램 진입점 (if __name__ == "__main__")
 # ══════════════════════════════════════════════════════════
 # ============================================================
@@ -265,7 +267,7 @@ except ImportError:
 #   단일 선언. 버전 변경 시 이 값(APP_NAME/APP_VERSION)만 수정하면 된다.
 # ══════════════════════════════════════════════════════════
 APP_NAME = "서울시내버스 노선 운행기록 수집 프로그램"
-APP_VERSION = "1.22"
+APP_VERSION = "1.23"
 APP_TITLE = f"{APP_NAME} v{APP_VERSION}"
 
 # ══════════════════════════════════════════════════════════
@@ -1803,6 +1805,8 @@ class SeoulBusRecorder(QMainWindow):
     @Slot(str)
     def _slot_log(self, msg):
         self.log_text.appendPlainText(datetime.now().strftime("[%H:%M:%S] ") + msg)
+        if self.auto_save_path:
+            self._log_file_label.set_full_text(self.auto_save_path)
 
     @Slot(int, tuple)
     def _slot_record(self, idx, entry):
@@ -2889,7 +2893,7 @@ class SeoulBusRecorder(QMainWindow):
         for p in self.route_map_panels.values():
             p.pause_tick()
         if self.recorded_data and self.auto_save_path and self.can_auto_save and len(self.recorded_data) > self._saved_record_count:
-            self._perform_auto_save()
+            self._final_save()
 
 # ──────────────────────────────────────────────────────────
 # 【6-31】 _on_toggle()
@@ -3038,7 +3042,7 @@ class SeoulBusRecorder(QMainWindow):
         for p in self.route_map_panels.values():
             p.pause_tick()
         if self.recorded_data and self.auto_save_path and self.can_auto_save and len(self.recorded_data) > self._saved_record_count:
-            self._perform_auto_save()
+            self._final_save()
 
 # ──────────────────────────────────────────────────────────
 # 【6-36】 _main_loop()
@@ -3291,7 +3295,75 @@ class SeoulBusRecorder(QMainWindow):
             self._save_lock.release()
 
 # ──────────────────────────────────────────────────────────
-# 【6-41】 _core_excel_save(tp, sc=False)
+# 【6-41】 _final_save()
+#   기록 중지/창 닫기 시 호출되는 마지막 저장.
+#   완료 처리(sc=False)를 하지 않고 실시간 파일만 마지막으로 저장한다.
+#   (완료 전환은 오직 자동 저장 사이클의 완료 조건에서만 발생)
+# ──────────────────────────────────────────────────────────
+    def _final_save(self):
+        if not self.recorded_data or not self.auto_save_path or not self.can_auto_save:
+            return
+        if not self._save_lock.acquire(blocking=False):
+            return
+        try:
+            self._core_excel_save(self.auto_save_path, False)
+        finally:
+            self._save_lock.release()
+
+# ──────────────────────────────────────────────────────────
+# 【6-42】 _rotate_live_file(new_dates)
+#   완료 조건이 충족되면 현재 '기록중인 실시간 파일'을 완료 이름으로
+#   rename(os.replace)하고, 완료 날짜를 실시간 데이터에서 제거한 뒤
+#   새 실시간 파일을 시작한다.
+#
+#   - 별도 완료 파일을 '생성'하지 않음 (저장 1회로 전환)
+#   - 파일명은 _route_file_tag()의 "노선유형_노선번호"를 유지한다.
+#   - 같은 이름의 완료 파일이 있으면 _1, _2 … 접미사로 중복을 피한다.
+# ──────────────────────────────────────────────────────────
+    def _rotate_live_file(self, new_dates):
+        try:
+            old_path = self.auto_save_path
+            if not old_path:
+                return
+            rtag = self._route_file_tag()
+            def _gbd(ds):
+                try:
+                    d = datetime.strptime(ds, "%Y-%m-%d %H:%M:%S")
+                    if d.hour < 3:
+                        d -= timedelta(days=1)
+                    return d.strftime("%Y-%m-%d")
+                except:
+                    return "Unknown"
+            # ① 실시간 파일 → 완료 이름으로 rename (내용 그대로 봉인)
+            #    ※ rename 실패해도 회전은 계속 진행한다(기록은 이미 저장됨).
+            #       완료 파일은 삭제/아카이브하지 않고 실행경로에 그대로 남긴다.
+            if old_path and os.path.exists(old_path):
+                sd2 = new_dates[-1].replace("-", "")
+                cp = os.path.join(self.current_dir, f"운행기록_{rtag}_{sd2}_완료.xlsx")
+                n = 1
+                while os.path.exists(cp):
+                    cp = os.path.join(self.current_dir, f"운행기록_{rtag}_{sd2}_완료_{n}.xlsx")
+                    n += 1
+                try:
+                    os.replace(old_path, cp)
+                    self.log(f"📁 완료 전환: {os.path.basename(cp)}")
+                except (PermissionError, OSError) as e:
+                    self.log(f"⚠ 완료 전환 실패(파일 사용 중) → 다음 파일로 진행: {e}")
+            # ② 완료 날짜 표시 + 실시간 데이터에서 제거
+            self._completed_dates_saved.update(new_dates)
+            self.recorded_data = [
+                r for r in self.recorded_data
+                if _gbd(r[0]) not in self._completed_dates_saved
+            ]
+            # ③ 새 실시간 파일 시작 (실제 파일 생성은 이어지는 ExcelWriter가 수행)
+            fn = f"운행기록_{rtag}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+            self.auto_save_path = os.path.join(self.current_dir, fn)
+            self.log(f"📁 실시간 기록파일 변경: {os.path.basename(self.auto_save_path)}")
+            self._saved_record_count = len(self.recorded_data)
+        except Exception as e:
+            self.log(f"⚠ 완료 전환 중 오류: {e}")
+
+# 【6-43】 _core_excel_save(tp, sc=False)
 #   운행 기록을 날짜별 시트로 분리하여 엑셀 저장.
 #
 #   날짜 분리 기준: 새벽 3시 이전(0~2시)은 전날 운행으로 간주
@@ -3300,13 +3372,15 @@ class SeoulBusRecorder(QMainWindow):
 #   처리 순서:
 #   ① DataFrame 생성 → gbd()로 각 데이터의 영업일(BizDate) 계산
 #   ② 현재 날짜(cb) 결정 (새벽 3시 이전이면 전날)
-#   ③ 완결 날짜(cd) = 오늘·Unknown 제외한 모든 날짜
-#   ④ ExcelWriter로 날짜별 시트에 저장 + _axs()로 스타일 적용
-#   ⑤ sc=True이면 완결 날짜의 별도 완료 파일 생성
-#      → "운행기록_노선유형_노선번호_YYYYMMDD_완료.xlsx" (_completed_dates_saved로 중복 방지)
-#      노선유형_노선번호를 파일명에 포함해 여러 프로그램 창(=여러 노선)을
-#      동시에 띄웠을 때 완료 파일이 서로 덮어써지는 것을 방지한다.
+#   ③ 완료 날짜(cd) = 오늘·Unknown 제외한 모든 날짜
+#   ④ sc=True이고 완료 조건 충족 시 실시간 파일을 완료로 rename(회전)
+#      → _rotate_live_file() 호출 후 DataFrame을 실시간 데이터로 재생성
+#   ⑤ ExcelWriter로 self.auto_save_path에 날짜별 시트 저장 + _axs() 스타일
+#      (df가 비어 있으면 현재 영업일 시트 1개를 빈 상태로 생성)
 #   ⑥ _saved_record_count 갱신
+#
+#   ※ 완료 파일은 '생성'하지 않고 회전(rename)으로만 만들어진다.
+#     회전 시 완료 날짜의 기록은 recorded_data에서 제거된다.
 # ──────────────────────────────────────────────────────────
     def _core_excel_save(self, tp, sc=False):
         try:
@@ -3324,26 +3398,23 @@ class SeoulBusRecorder(QMainWindow):
             now = datetime.now()
             cb = (now - timedelta(days=1)).strftime("%Y-%m-%d") if now.hour < 3 else now.strftime("%Y-%m-%d")
             cd = set(df['BizDate'].unique()) - {cb, "Unknown"}
-            with pd.ExcelWriter(tp, engine='openpyxl') as w:
-                for bd, g in df.groupby('BizDate'):
-                    sd = g.drop(columns=['BizDate'])
-                    sd.to_excel(w, sheet_name=bd, index=False)
-                    self._axs(w.sheets[bd], sd)
+            if sc and (cd - self._completed_dates_saved):
+                # ── 완료 조건 충족 → 실시간 파일을 '완료'로 rename, 새 세션 시작 ──
+                self._rotate_live_file(sorted(cd - self._completed_dates_saved))
+                now = datetime.now()
+                cb = (now - timedelta(days=1)).strftime("%Y-%m-%d") if now.hour < 3 else now.strftime("%Y-%m-%d")
+                df = pd.DataFrame(self.recorded_data, columns=cols)
+                if not df.empty:
+                    df['BizDate'] = df['데이터시각'].apply(gbd)
+            with pd.ExcelWriter(self.auto_save_path, engine='openpyxl') as w:
+                if df.empty:
+                    pd.DataFrame(columns=cols).to_excel(w, sheet_name=cb, index=False)
+                else:
+                    for bd, g in df.groupby('BizDate'):
+                        sd = g.drop(columns=['BizDate'])
+                        sd.to_excel(w, sheet_name=bd, index=False)
+                        self._axs(w.sheets[bd], sd)
                 self._write_source_sheet(w.book)
-            if sc:
-                rtag = self._route_file_tag()
-                for bd in sorted(cd - self._completed_dates_saved):
-                    dd = df[df['BizDate'] == bd].drop(columns=['BizDate'])
-                    if dd.empty:
-                        continue
-                    sd2 = bd.replace("-", "")
-                    cp = os.path.join(self.current_dir, f"운행기록_{rtag}_{sd2}_완료.xlsx")
-                    with pd.ExcelWriter(cp, engine='openpyxl') as cw:
-                        dd.to_excel(cw, sheet_name=bd, index=False)
-                        self._axs(cw.sheets[bd], dd)
-                        self._write_source_sheet(cw.book)
-                    self._completed_dates_saved.add(bd)
-                    self.log(f"📁 완결 파일 저장: 운행기록_{rtag}_{sd2}_완료.xlsx")
             self._saved_record_count = len(self.recorded_data)
         except PermissionError:
             self.log("⚠ 엑셀 파일이 열려 있어 저장을 건너뜁니다.")
@@ -3351,7 +3422,7 @@ class SeoulBusRecorder(QMainWindow):
             self.log(f"❌ 저장 오류: {e}")
 
 # ──────────────────────────────────────────────────────────
-# 【6-42】 _write_source_sheet(wb)
+# 【6-44】 _write_source_sheet(wb)
 #   엑셀 산출물(운행기록/완료 파일 공통)에 "출처 및 수집방법" 시트를
 #   맨 앞(인덱스 0)에 추가. 공공누리 제1유형 출처표시 + 수집 프로그램/
 #   소스코드 링크 + 실시간 데이터 유의사항을 담는다. _core_excel_save()에서
@@ -3399,7 +3470,7 @@ class SeoulBusRecorder(QMainWindow):
         ws.column_dimensions["B"].width = 78
 
 # ──────────────────────────────────────────────────────────
-# 【6-43】 _axs(ws, df)
+# 【6-45】 _axs(ws, df)
 #   엑셀 워크시트에 스타일 적용.
 #   헤더 행(1행): 연파랑 배경(#DDEBF7) + 굵은 글자(11pt) + 가운데 정렬
 #   컬럼 너비: max(데이터 최대 글자 수, 헤더 글자 수) + 컬럼별 가산값
@@ -3426,7 +3497,7 @@ class SeoulBusRecorder(QMainWindow):
             
 
 # ──────────────────────────────────────────────────────────
-# 【6-44】 _ask_interval()
+# 【6-46】 _ask_interval()
 #   갱신 주기(10초 이상)를 QLineEdit으로 입력 받는 대화상자.
 # ──────────────────────────────────────────────────────────
     def _ask_interval(self):
@@ -3458,7 +3529,7 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-45】 _show_api_status()
+# 【6-47】 _show_api_status()
 #   메뉴 [API 현황] 클릭 시 호출. API별 오늘/어제 호출 횟수를 표로 표시.
 #   setMinimumSectionSize(60)으로 컬럼이 너무 좁아지지 않도록 보호.
 # ──────────────────────────────────────────────────────────
@@ -3501,7 +3572,7 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-46】 _show_program_info()
+# 【6-48】 _show_program_info()
 #   메뉴 [프로그램 정보] 클릭 시 호출.
 #   ① 저작권/오픈소스(MIT, Qt·PySide6 LGPL v3) 고지
 #   ② 공공데이터 4개 데이터셋 출처표시(공공누리 제1유형) + 공공누리 마크
@@ -3618,11 +3689,11 @@ class SeoulBusRecorder(QMainWindow):
         dlg.exec()
 
 # ──────────────────────────────────────────────────────────
-# 【6-47】 closeEvent(event)
+# 【6-49】 closeEvent(event)
 #   창 닫기(X 버튼 또는 종료 메뉴) 시 Qt가 자동 호출.
 #   ① 종료 확인 메시지 → 아니오이면 event.ignore()로 취소
 #   ② is_monitoring=False 설정 (갱신 루프 중지)
-#   ③ 미저장 기록 있으면 _perform_auto_save()로 마지막 저장
+#   ③ 미저장 기록 있으면 _final_save()로 마지막 저장
 #   ④ event.accept()로 창 닫기 허용
 # ──────────────────────────────────────────────────────────
     def closeEvent(self, event):
@@ -3631,16 +3702,16 @@ class SeoulBusRecorder(QMainWindow):
             return
         self.is_monitoring = False
         if self.recorded_data and self.auto_save_path and self.can_auto_save and len(self.recorded_data) > self._saved_record_count:
-            self._perform_auto_save()
+            self._final_save()
         event.accept()
 
 # ──────────────────────────────────────────────────────────
-# 【6-48】 _load_favorites() → list
+# 【6-50】 _load_favorites() → list
 #   설정 파일(Seoul_Bus_Config.ini)의 [favorites] 섹션에서
 #   즐겨찾기 노선 목록을 JSON으로 읽어 리스트로 반환.
 #   파싱 실패 시 빈 리스트 반환.
 #
-# 【6-49】 _save_favorites(favs)
+# 【6-51】 _save_favorites(favs)
 #   즐겨찾기 리스트를 JSON으로 직렬화하여 설정 파일에 저장.
 #   동시에 현재 API 키도 갱신 (favorites 저장 시 keys도 함께 기록).
 # ──────────────────────────────────────────────────────────
@@ -3672,7 +3743,7 @@ class SeoulBusRecorder(QMainWindow):
             pass
 
 # ──────────────────────────────────────────────────────────
-# 【6-50】 _cleanup_search_signal(handler)
+# 【6-52】 _cleanup_search_signal(handler)
 #   sig_search_done 시그널에서 특정 핸들러(슬롯)의 연결을 안전하게 해제.
 #   대화상자가 닫힌 후 더 이상 필요 없는 슬롯이 계속 연결되어
 #   의도치 않게 호출되는 것을 방지.
